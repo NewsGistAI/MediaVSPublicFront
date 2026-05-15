@@ -1,0 +1,198 @@
+================================================================================
+DATA STRUCTURE COMPARISON REPORT
+topics_20260515_095619.json  vs  sample_topics.json
+================================================================================
+
+QUICK OVERVIEW
+==============
+New File (20260515):  1,709 lines, Bilingual structure (zh/en separated)
+Old File (sample):    3,725 lines, Mixed language single arrays
+
+================================================================================
+KEY CHANGES SUMMARY
+================================================================================
+
+1. BILINGUAL SUPPORT (LANGUAGE SEPARATION)
+   ✅ NEW: zh_topic + en_topic (separated)
+   ❌ OLD: topic (mixed/single)
+   
+   ✅ NEW: zh_summary + en_summary (full paragraphs added)
+   ❌ OLD: No summaries at all
+   
+   ✅ NEW: zh_news_list + en_news_list (separate arrays)
+   ❌ OLD: news_list (single mixed array)
+   
+   ✅ NEW: zh_comment_list + en_comment_list (separate arrays)
+   ❌ OLD: comment_list (single mixed array)
+
+2. SOURCE METADATA (NEW FIELDS)
+   ✅ NEW: source object in zh_news_list items with:
+           - name_zh: Chinese source name
+           - icon: Icon filename (e.g., "xinhua.ico")
+           - base_url: Domain base
+   ❌ OLD: No source information
+
+   ✅ NEW: source_icon in en_news_list items
+   ❌ OLD: No source information
+
+3. SUMMARIES (NEW CONTENT)
+   ✅ NEW: zh_summary - Full paragraph content in Chinese
+   ✅ NEW: en_summary - Full paragraph content in English
+   ❌ OLD: No summary field
+
+================================================================================
+FIELD-BY-FIELD COMPARISON - TOPIC LEVEL
+================================================================================
+
+ADDED FIELDS (6 new fields):
+  • zh_topic (string) - Chinese title
+  • en_topic (string) - English title
+  • zh_summary (string) - Chinese paragraph summary
+  • en_summary (string) - English paragraph summary
+  • source (object) - In zh_news_list items only
+  • source_icon (string/null) - In en_news_list items only
+
+REMOVED FIELDS (3 removed):
+  • topic - Replaced by zh_topic + en_topic
+  • news_list - Replaced by zh_news_list + en_news_list
+  • comment_list - Replaced by zh_comment_list + en_comment_list
+
+UNCHANGED FIELDS:
+  • generated_at (timestamp)
+  • total_topics (integer)
+  • news_count (integer)
+  • comment_count (integer)
+  • cover_img (string/null) - Image field structure same
+
+================================================================================
+NEWS ITEM STRUCTURE EXAMPLE
+================================================================================
+
+NEW FILE (zh_news_list item):
+{
+  "title": "Chinese title",
+  "url": "https://...",
+  "published_at": "2026-05-15T00:00:00+08:00",
+  "cover_img": null,
+  "source": {
+    "name_zh": "新华网",
+    "icon": "xinhua.ico",
+    "base_url": "xinhuanet.com"
+  }
+}
+
+NEW FILE (en_news_list item):
+{
+  "title": "English title",
+  "url": "https://...",
+  "published_at": "2026-05-15T09:13:02+08:00",
+  "cover_img": null,
+  "source_icon": null
+}
+
+OLD FILE (news_list item):
+{
+  "title": "Mixed language title",
+  "url": "https://...",
+  "published_at": "2026-05-11T15:04:00+08:00",
+  "cover_img": "http://img2.chinadaily.com.cn/images/202605/11/6a01d142a310d68600fd3043.jpeg"
+}
+
+================================================================================
+COMMENTS - KEY DIFFERENCES
+================================================================================
+
+NEW FILE:
+  • zh_comment_list: Array (currently empty in all samples)
+  • en_comment_list: Array (currently empty in all samples)
+  • comment_count: 0 (all observed topics)
+
+OLD FILE:
+  • comment_list: Array with actual comment objects
+  • Each comment has: content, user, news_url, published_at, like, score
+  • comment_count: Various (e.g., 15)
+
+CONCERN: New file shows no comments yet, may be work-in-progress
+
+================================================================================
+IMAGE & MEDIA FIELDS
+================================================================================
+
+Field          | New File        | Old File        | Notes
+cover_img      | ✅ Present      | ✅ Present      | Same structure, image URLs
+source.icon    | ✅ Present      | ❌ Missing      | Filename: "xinhua.ico"
+source_icon    | ✅ Present      | ❌ Missing      | Just icon filename
+header_image   | ❌ Not found    | ❌ Not found    | Not in either file
+brand_image    | ❌ Not found    | ❌ Not found    | Not in either file
+
+================================================================================
+BILINGUAL EXAMPLES
+================================================================================
+
+First topic in NEW file:
+  zh_topic: "马修·韦尔当选所罗门群岛新总理"
+  en_topic: "Matthew Wale elected as new Prime Minister of Solomon Islands"
+  
+  zh_summary: "霍尼亚拉，5月15日... [full Chinese paragraph]"
+  en_summary: "HONIARA, May 15... [full English paragraph]"
+
+First topic in OLD file:
+  topic: "中美联合破获跨国毒品走私案，逮捕5人"
+  (Chinese only, no English version)
+
+================================================================================
+SOURCE METADATA EXAMPLES
+================================================================================
+
+From NEW file zh_news_list:
+  source: {
+    "name_zh": "新华网",
+    "icon": "xinhua.ico",
+    "base_url": "xinhuanet.com"
+  }
+
+  source: {
+    "name_zh": "中国经济网",
+    "icon": "ce.ico",
+    "base_url": "ce.cn"
+  }
+
+  source: null  (for items without source data)
+
+From OLD file: No source information at all
+
+================================================================================
+MIGRATION PATH (Old → New)
+================================================================================
+
+To convert OLD format to NEW format:
+
+1. Split single topic → Create zh_topic + en_topic
+   Logic: Extract Chinese parts → zh_topic, English parts → en_topic
+
+2. Add summaries → Generate zh_summary + en_summary
+   Source: Could be AI-generated or manually provided
+
+3. Split news_list → zh_news_list + en_news_list
+   Logic: Route by language of title (Chinese chars → zh, English → en)
+
+4. Split comment_list → zh_comment_list + en_comment_list
+   Logic: Route by language of comment content
+
+5. Add source objects → Populate for zh_news_list items
+   Source: Need source database or mapping
+
+6. Add source_icon → Optional for en_news_list items
+
+================================================================================
+FILE INFO
+================================================================================
+New File Path:  d:/cgtn0428/topics_20260515_095619.json
+Old File Path:  d:/cgtn0428/sample_topics.json
+
+Generated At (New):  2026-05-15T09:56:19.987824
+Generated At (Old):  2026-05-12T10:16:57.679475
+
+Both contain 10 topics each
+
+================================================================================

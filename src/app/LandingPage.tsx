@@ -1,19 +1,27 @@
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
-import { Globe2, TrendingUp, ArrowRight, Newspaper, MessageCircle } from 'lucide-react';
+import { Globe2, TrendingUp, ArrowRight, Newspaper, MessageCircle, Languages } from 'lucide-react';
+import { useLanguage } from './LanguageContext';
 import sampleData from '../../sample_topics.json';
-
-const featuredTopics = sampleData.topics.slice(0, 2).map((t, i) => ({
-  id: i + 1,
-  topic: t.topic,
-  news_count: t.news_count,
-  comment_count: t.comment_count,
-  firstNewsTitle: t.news_list[0]?.title || '',
-  firstComment: t.comment_list[0]?.content || '',
-}));
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { lang, setLang, t } = useLanguage();
+  const isEn = lang === 'en';
+
+  const featuredTopics = sampleData.topics.slice(0, 2).map((raw: any, i: number) => {
+    const topic = isEn ? raw.en_topic : raw.zh_topic;
+    const newsList = isEn ? (raw.en_news_list || []) : (raw.zh_news_list || []);
+    const commentList = isEn ? (raw.en_comment_list || []) : (raw.zh_comment_list || []);
+    return {
+      id: i + 1,
+      topic,
+      news_count: raw.news_count,
+      comment_count: raw.comment_count,
+      firstNewsTitle: newsList[0]?.title || '',
+      firstComment: commentList[0]?.content || '',
+    };
+  });
 
   return (
     <div className="min-h-screen bg-[var(--news-cream)]" style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}>
@@ -25,13 +33,25 @@ export default function LandingPage() {
               NewsGist
             </h1>
           </div>
-          <button
-            onClick={() => navigate('/news')}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--news-indigo)] text-white rounded-lg hover:bg-[var(--news-indigo)]/90 transition-colors text-sm font-medium"
-          >
-            浏览所有主题
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Language Toggle */}
+            <button
+              onClick={() => setLang(isEn ? 'zh' : 'en')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--news-indigo)]/20 bg-white hover:bg-[var(--news-indigo)]/5 transition-colors text-sm"
+            >
+              <Languages className="w-3.5 h-3.5 text-[var(--news-indigo)]" />
+              <span className={`${!isEn ? 'font-bold text-[var(--news-indigo)]' : 'text-[var(--muted-foreground)]'}`}>中</span>
+              <span className="text-[var(--muted-foreground)]">/</span>
+              <span className={`${isEn ? 'font-bold text-[var(--news-indigo)]' : 'text-[var(--muted-foreground)]'}`}>EN</span>
+            </button>
+            <button
+              onClick={() => navigate('/news')}
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--news-indigo)] text-white rounded-lg hover:bg-[var(--news-indigo)]/90 transition-colors text-sm font-medium"
+            >
+              {t('browseAll')}
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -42,7 +62,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             style={{
-              fontFamily: 'Noto Serif SC, serif',
+              fontFamily: isEn ? 'Crimson Pro, serif' : 'Noto Serif SC, serif',
               fontSize: 'clamp(2rem, 5vw, 3.5rem)',
               fontWeight: 700,
               color: 'var(--news-indigo)',
@@ -50,14 +70,14 @@ export default function LandingPage() {
               marginBottom: '1.5rem'
             }}
           >
-            看见故事的多面性
+            {t('heroTitle')}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             style={{
-              fontFamily: 'Noto Serif SC, serif',
+              fontFamily: isEn ? 'IBM Plex Sans, sans-serif' : 'Noto Serif SC, serif',
               fontSize: 'clamp(1.1rem, 2.5vw, 1.5rem)',
               color: 'var(--foreground)',
               lineHeight: 1.6,
@@ -65,7 +85,7 @@ export default function LandingPage() {
               margin: '0 auto'
             }}
           >
-            官方媒体与公众声音的平衡呈现
+            {t('heroSubtitle')}
           </motion.p>
         </div>
       </section>
@@ -83,7 +103,7 @@ export default function LandingPage() {
             >
               <div className="p-6 md:p-8">
                 <h3 style={{
-                  fontFamily: 'Noto Serif SC, serif',
+                  fontFamily: isEn ? 'Crimson Pro, serif' : 'Noto Serif SC, serif',
                   fontSize: '1.75rem',
                   fontWeight: 700,
                   color: 'var(--news-indigo)',
@@ -93,24 +113,26 @@ export default function LandingPage() {
                   {news.topic}
                 </h3>
                 <div className="flex items-center gap-6 text-sm text-[var(--muted-foreground)]">
-                  <span className="flex items-center gap-1"><Newspaper className="w-4 h-4" />{news.news_count} 篇报道</span>
-                  <span className="flex items-center gap-1"><MessageCircle className="w-4 h-4" />{news.comment_count} 条评论</span>
+                  <span className="flex items-center gap-1"><Newspaper className="w-4 h-4" />{news.news_count} {t('articles')}</span>
+                  <span className="flex items-center gap-1"><MessageCircle className="w-4 h-4" />{news.comment_count} {t('comments')}</span>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-[var(--news-indigo)]/10 border-t border-[var(--news-indigo)]/10">
                 <div className="bg-white p-6">
                   <div className="flex items-center gap-2 mb-3">
                     <Globe2 className="w-4 h-4 text-[var(--news-indigo)]" />
-                    <h4 className="font-serif text-sm font-bold text-[var(--news-indigo)] tracking-wider">官方媒体</h4>
+                    <h4 className="font-serif text-sm font-bold text-[var(--news-indigo)] tracking-wider">{t('officialMedia')}</h4>
                   </div>
                   <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">{news.firstNewsTitle}</p>
                 </div>
                 <div className="bg-white p-6">
                   <div className="flex items-center gap-2 mb-3">
                     <TrendingUp className="w-4 h-4 text-[var(--news-vermillion)]" />
-                    <h4 className="font-serif text-sm font-bold text-[var(--news-vermillion)] tracking-wider">公众声音</h4>
+                    <h4 className="font-serif text-sm font-bold text-[var(--news-vermillion)] tracking-wider">{t('publicVoice')}</h4>
                   </div>
-                  <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">{news.firstComment}</p>
+                  <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">
+                    {news.firstComment || t('noComments')}
+                  </p>
                 </div>
               </div>
             </motion.article>
@@ -126,17 +148,17 @@ export default function LandingPage() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="bg-gradient-to-br from-[var(--news-cream)] to-white rounded-2xl p-8 md:p-12 border border-[var(--news-indigo)]/20"
           >
-            <h3 style={{ fontFamily: 'Noto Serif SC, serif', fontSize: '1.75rem', fontWeight: 700, color: 'var(--news-indigo)', marginBottom: '1rem' }}>
-              探索更多视角
+            <h3 style={{ fontFamily: isEn ? 'Crimson Pro, serif' : 'Noto Serif SC, serif', fontSize: '1.75rem', fontWeight: 700, color: 'var(--news-indigo)', marginBottom: '1rem' }}>
+              {t('exploreMore')}
             </h3>
             <p className="text-gray-600 mb-6" style={{ lineHeight: 1.7 }}>
-              发现国际、经贸、生活等领域的多元报道与公众讨论
+              {t('exploreDesc')}
             </p>
             <button
               onClick={() => navigate('/news')}
               className="inline-flex items-center gap-2 px-8 py-3 bg-[var(--news-indigo)] text-white rounded-lg font-semibold hover:bg-[var(--news-vermillion)] transition-colors"
             >
-              进入 NewsGist
+              {t('enterApp')}
               <ArrowRight className="w-5 h-5" />
             </button>
           </motion.div>
@@ -146,7 +168,7 @@ export default function LandingPage() {
       <footer className="border-t border-[var(--news-indigo)]/10 py-8 px-6">
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-sm text-[var(--muted-foreground)]">
-            © 2026 NewsGist. 多元视角 · 理解世界
+            {t('copyright')}
           </p>
         </div>
       </footer>
